@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.math.Rectangle;
 
 import ldtk.Camera;
@@ -50,6 +51,10 @@ public class Menu extends State {
 
 	@Override
 	public void draw() {
+		Gdx.gl.glDisable(GL10.GL_SCISSOR_TEST);
+		Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+
 		guiCam.activate();
 		ApplicationType appType = Gdx.app.getType();
 		String helloWorld = appType == ApplicationType.Android

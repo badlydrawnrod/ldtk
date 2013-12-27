@@ -58,11 +58,10 @@ public class Font {
 	}
 	
 	/**
-	 * Disposes of this font and its underlying BitmapFont.
+	 * Disposes of this font.
 	 */
 	public void dispose() {
 		fonts.dispose(name);
-		bitmapFont.dispose();
 	}
 
 	/**

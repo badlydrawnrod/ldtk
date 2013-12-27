@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
@@ -16,12 +17,15 @@ import com.badlogic.gdx.utils.Array;
 
 public class Assets {
 
+	private static final String TAG = "Assets";
+	
 	public static final String DEFAULT_PATH = "";
 
 	private AssetManager assetManager;
 	private Images images;
 	private Fonts fonts;
 	private Sounds sounds;
+	private Tunes tunes;
 
 	/**
 	 * Creates the Assets object, telling it where to store loaded assets.
@@ -33,10 +37,11 @@ public class Assets {
 	 * @param sounds
 	 *            where to store sounds.
 	 */
-	public Assets(Images images, Fonts fonts, Sounds sounds) {
+	public Assets(Images images, Fonts fonts, Sounds sounds, Tunes tunes) {
 		this.images = images;
 		this.fonts = fonts;
 		this.sounds = sounds;
+		this.tunes = tunes;
 		assetManager = new AssetManager();
 	}
 
@@ -46,6 +51,7 @@ public class Assets {
 	 * are in "sounds", not "level1/sounds".
 	 */
 	public void loadDefaults() {
+		Gdx.app.log(TAG, "Loading defaults.");
 		load(DEFAULT_PATH);
 	}
 
@@ -60,6 +66,7 @@ public class Assets {
 		loadTextures(path);
 		loadSounds(path);
 		loadFonts(path);
+		loadMusic(path);
 	}
 
 	/**
@@ -73,6 +80,7 @@ public class Assets {
 		unloadTextures(path);
 		unloadSounds(path);
 		unloadFonts(path);
+		unloadMusic(path);
 	}
 
 	/**
@@ -84,6 +92,7 @@ public class Assets {
 	 *            the base path, eg, "level1".
 	 */
 	public void loadAtlases(String path) {
+		Gdx.app.log(TAG, "Loading atlases.");
 		List<String> atlasFilenames = loadAtlasesAsync(path);
 		assetManager.finishLoading();
 		populateAtlases(atlasFilenames);
@@ -95,7 +104,7 @@ public class Assets {
 	 * @param path the base path, eg, "level1".
 	 */
 	public void unloadAtlases(String path) {
-		List<String> atlasFilenames = getAssetFilenames(atlasDir(path), ".atlas");
+		List<String> atlasFilenames = getAssetFilenames(atlasDir(path), ".pack");
 		depopulateAtlases(atlasFilenames);
 		unloadAssets(atlasFilenames);
 	}
@@ -108,6 +117,7 @@ public class Assets {
 	 *            the base path, eg, "level1".
 	 */
 	public void loadTextures(String path) {
+		Gdx.app.log(TAG, "Loading textures.");
 		List<String> textureFilenames = loadTexturesAsync(path);
 		assetManager.finishLoading();
 		populateTextures(textureFilenames);
@@ -132,6 +142,7 @@ public class Assets {
 	 *            the base path, eg, "level1".
 	 */
 	public void loadSounds(String path) {
+		Gdx.app.log(TAG, "Loading sounds.");
 		List<String> soundFilenames = loadSoundsAsync(path);
 		assetManager.finishLoading();
 		populateSounds(soundFilenames);
@@ -147,6 +158,19 @@ public class Assets {
 		depopulateSounds(soundFilenames);
 		unloadAssets(soundFilenames);
 	}
+	
+	public void loadMusic(String path) {
+		Gdx.app.log(TAG, "Loading music.");
+		List<String> musicFilenames = loadMusicAsync(path);
+		assetManager.finishLoading();
+		populateMusic(musicFilenames);
+	}
+	
+	public void unloadMusic(String path) {
+		List<String> musicFilenames = getAssetFilenames(musicDir(path), ".ogg");
+		depopulateMusic(musicFilenames);
+		unloadAssets(musicFilenames);
+	}
 
 	/**
 	 * Loads all font assets from the given path. Font assets are expected to be
@@ -156,6 +180,7 @@ public class Assets {
 	 *            the base path, eg, "level1".
 	 */
 	public void loadFonts(String path) {
+		Gdx.app.log(TAG, "Loading fonts.");
 		List<String> fontFilenames = loadFontsAsync(path);
 		assetManager.finishLoading();
 		populateFonts(fontFilenames);
@@ -174,7 +199,7 @@ public class Assets {
 
 	private List<String> loadAtlasesAsync(String path) {
 		// Load the texture atlases.
-		List<String> atlasFilenames = loadAssets(atlasDir(path), ".atlas", TextureAtlas.class);
+		List<String> atlasFilenames = loadAssets(atlasDir(path), ".pack", TextureAtlas.class);
 		return atlasFilenames;
 	}
 
@@ -201,6 +226,16 @@ public class Assets {
 	private String soundDir(String path) {
 		return normalizePath(path) + "sounds";
 	}
+	
+	private List<String> loadMusicAsync(String path) {
+		// Load the music.
+		List<String> musicFilenames = loadAssets(musicDir(path), ".ogg", com.badlogic.gdx.audio.Music.class);
+		return musicFilenames;
+	}
+	
+	private String musicDir(String path) {
+		return normalizePath(path) + "music";
+	}
 
 	private List<String> loadFontsAsync(String path) {
 		// Load the fonts.
@@ -225,10 +260,10 @@ public class Assets {
 		for (String filename : atlasFilenames) {
 			TextureAtlas atlas = assetManager.get(filename, TextureAtlas.class);
 
-			// Lop off the "*data/" prefix and the ".atlas" suffix.
+			// Lop off the "*data/" prefix and the ".pack" suffix.
 			int cut = filename.indexOf("data/") + 5;
 			String shortname = filename.substring(cut);
-			shortname = shortname.substring(0, shortname.length() - 6);
+			shortname = shortname.substring(0, shortname.length() - 5);
 
 			Array<AtlasRegion> regions = atlas.getRegions();
 			for (AtlasRegion region : regions) {
@@ -242,10 +277,10 @@ public class Assets {
 		for (String filename : atlasFilenames) {
 			TextureAtlas atlas = assetManager.get(filename, TextureAtlas.class);
 
-			// Lop off the "*data/" prefix and the ".atlas" suffix.
+			// Lop off the "*data/" prefix and the ".pack" suffix.
 			int cut = filename.indexOf("data/") + 5;
 			String shortname = filename.substring(cut);
-			shortname = shortname.substring(0, shortname.length() - 6);
+			shortname = shortname.substring(0, shortname.length() - 5);
 
 			Array<AtlasRegion> regions = atlas.getRegions();
 			for (AtlasRegion region : regions) {
@@ -300,6 +335,29 @@ public class Assets {
 			String soundName = filename.substring(cut);
 			soundName = soundName.substring(0, soundName.length() - 4);
 			sounds.dispose(soundName);
+		}
+	}
+
+	private void populateMusic(List<String> musicFilenames) {
+		// Create tunes from the music.
+		for (String filename : musicFilenames) {
+			Music music = assetManager.get(filename, Music.class);
+
+			// Lop off the "*data/" prefix and the ".ogg" suffix.
+			int cut = filename.indexOf("data/") + 5;
+			String musicName = filename.substring(cut);
+			musicName = musicName.substring(0, musicName.length() - 4);
+			tunes.add(musicName, music);
+		}
+	}
+
+	private void depopulateMusic(List<String> musicFilenames) {
+		for (String filename : musicFilenames) {
+			// Lop off the "*data/" prefix and the ".ogg" suffix.
+			int cut = filename.indexOf("data/") + 5;
+			String musicName = filename.substring(cut);
+			musicName = musicName.substring(0, musicName.length() - 4);
+			tunes.dispose(musicName);
 		}
 	}
 

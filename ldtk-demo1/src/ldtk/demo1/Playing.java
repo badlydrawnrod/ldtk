@@ -7,6 +7,7 @@ import ldtk.Camera;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.GL10;
 
 public class Playing extends State {
 
@@ -60,6 +61,10 @@ public class Playing extends State {
 
 	@Override
 	public void draw() {
+		Gdx.gl.glDisable(GL10.GL_SCISSOR_TEST);
+		Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+		
 		worldRenderer.draw();
 		guiCam.activate();
 	}
